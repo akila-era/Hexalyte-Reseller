@@ -126,10 +126,10 @@ export default function RegisterPage() {
   }
 
   return (
-    <AuthLayout ariaLabel="Register Account">
+    <AuthLayout ariaLabel="Register Account" formWrapperClassName="register-form-wrapper">
 
           <h1 className="login-form-heading">Create Account</h1>
-          <p className="login-form-subtitle">Register to start your journey as a partner partner.</p>
+          <p className="login-form-subtitle">Register to start your journey as a partner.</p>
 
       {/* Error Notice */}
       {formError && (
@@ -145,173 +145,175 @@ export default function RegisterPage() {
       )}
 
       <form onSubmit={handleSubmit} noValidate>
-        {/* Full Name */}
-        <div className="login-field">
-          <label htmlFor="register-name" className="login-field-label">
-            Full Name
-          </label>
-          <div className="login-field-input-wrap">
-            <span className="login-field-icon">
-              <User size={18} />
-            </span>
-            <input
-              id="register-name"
-              type="text"
-              name="name"
-              autoComplete="name"
-              placeholder="e.g. Ruwan Jayawardena"
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value)
-                if (errors.name) setErrors((prev) => ({ ...prev, name: undefined }))
-              }}
-              className={`login-field-input ${errors.name ? 'has-error' : ''}`}
-              disabled={submitting}
-              required
-            />
-          </div>
-          {errors.name && <div className="login-field-error">{errors.name}</div>}
-        </div>
-
-        {/* Email Address */}
-        <div className="login-field">
-          <label htmlFor="register-email" className="login-field-label">
-            Email Address
-          </label>
-          <div className="login-field-input-wrap">
-            <span className="login-field-icon">
-              <Mail size={18} />
-            </span>
-            <input
-              id="register-email"
-              type="email"
-              name="email"
-              autoComplete="email"
-              placeholder="name@business.com"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value)
-                if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }))
-              }}
-              className={`login-field-input ${errors.email ? 'has-error' : ''}`}
-              disabled={submitting}
-              required
-            />
-          </div>
-          {errors.email && <div className="login-field-error">{errors.email}</div>}
-        </div>
-
-        {/* Mobile number: receives the SMS verification code */}
-        <div className="login-field">
-          <label htmlFor="register-phone" className="login-field-label">
-            Mobile Number
-          </label>
-          <div className="login-field-input-wrap">
-            <span className="login-field-icon">
-              <Phone size={18} />
-            </span>
-            <input
-              id="register-phone"
-              type="tel"
-              name="phone"
-              autoComplete="tel"
-              inputMode="tel"
-              placeholder="0771234567"
-              value={phone}
-              onChange={(e) => {
-                setPhone(e.target.value)
-                if (errors.phone) setErrors((prev) => ({ ...prev, phone: undefined }))
-              }}
-              className={`login-field-input ${errors.phone ? 'has-error' : ''}`}
-              disabled={submitting}
-              required
-            />
-          </div>
-          {errors.phone ? (
-            <div className="login-field-error">{errors.phone}</div>
-          ) : (
-            <div className="login-field-hint" style={{ fontSize: '0.78rem', opacity: 0.75, marginTop: '0.3rem' }}>
-              We will text a 6-digit verification code to this number.
+        <div className="register-grid">
+          {/* Full Name */}
+          <div className="login-field">
+            <label htmlFor="register-name" className="login-field-label">
+              Full Name
+            </label>
+            <div className="login-field-input-wrap">
+              <span className="login-field-icon">
+                <User size={18} />
+              </span>
+              <input
+                id="register-name"
+                type="text"
+                name="name"
+                autoComplete="name"
+                placeholder="e.g. Ruwan Jayawardena"
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value)
+                  if (errors.name) setErrors((prev) => ({ ...prev, name: undefined }))
+                }}
+                className={`login-field-input ${errors.name ? 'has-error' : ''}`}
+                disabled={submitting}
+                required
+              />
             </div>
-          )}
-        </div>
-
-        {/* Password */}
-        <div className="login-field">
-          <label htmlFor="register-password" className="login-field-label">
-            Password
-          </label>
-          <div className="login-field-input-wrap">
-            <span className="login-field-icon">
-              <Lock size={18} />
-            </span>
-            <input
-              id="register-password"
-              type={showPassword ? 'text' : 'password'}
-              name="password"
-              autoComplete="new-password"
-              placeholder="At least 10 characters"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value)
-                if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }))
-              }}
-              className={`login-field-input ${errors.password ? 'has-error' : ''}`}
-              disabled={submitting}
-              required
-            />
-            <button
-              type="button"
-              className="login-pw-toggle"
-              onClick={() => setShowPassword(!showPassword)}
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-              aria-pressed={showPassword}
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
+            {errors.name && <div className="login-field-error">{errors.name}</div>}
           </div>
-          {errors.password && <div className="login-field-error">{errors.password}</div>}
-        </div>
 
-        {/* Confirm Password */}
-        <div className="login-field">
-          <label htmlFor="register-confirm-password" className="login-field-label">
-            Confirm Password
-          </label>
-          <div className="login-field-input-wrap">
-            <span className="login-field-icon">
-              <Lock size={18} />
-            </span>
-            <input
-              id="register-confirm-password"
-              type={showConfirmPassword ? 'text' : 'password'}
-              name="confirmPassword"
-              autoComplete="new-password"
-              placeholder="Re-enter your password"
-              value={confirmPassword}
-              onChange={(e) => {
-                setConfirmPassword(e.target.value)
-                if (errors.confirmPassword) setErrors((prev) => ({ ...prev, confirmPassword: undefined }))
-              }}
-              className={`login-field-input ${errors.confirmPassword ? 'has-error' : ''}`}
-              disabled={submitting}
-              required
-            />
-            <button
-              type="button"
-              className="login-pw-toggle"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
-              aria-pressed={showConfirmPassword}
-            >
-              {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
+          {/* Email Address */}
+          <div className="login-field">
+            <label htmlFor="register-email" className="login-field-label">
+              Email Address
+            </label>
+            <div className="login-field-input-wrap">
+              <span className="login-field-icon">
+                <Mail size={18} />
+              </span>
+              <input
+                id="register-email"
+                type="email"
+                name="email"
+                autoComplete="email"
+                placeholder="name@business.com"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value)
+                  if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }))
+                }}
+                className={`login-field-input ${errors.email ? 'has-error' : ''}`}
+                disabled={submitting}
+                required
+              />
+            </div>
+            {errors.email && <div className="login-field-error">{errors.email}</div>}
           </div>
-          {errors.confirmPassword && <div className="login-field-error">{errors.confirmPassword}</div>}
+
+          {/* Mobile number: receives the SMS verification code */}
+          <div className="login-field register-col-span-2">
+            <label htmlFor="register-phone" className="login-field-label">
+              Mobile Number
+            </label>
+            <div className="login-field-input-wrap">
+              <span className="login-field-icon">
+                <Phone size={18} />
+              </span>
+              <input
+                id="register-phone"
+                type="tel"
+                name="phone"
+                autoComplete="tel"
+                inputMode="tel"
+                placeholder="0771234567"
+                value={phone}
+                onChange={(e) => {
+                  setPhone(e.target.value)
+                  if (errors.phone) setErrors((prev) => ({ ...prev, phone: undefined }))
+                }}
+                className={`login-field-input ${errors.phone ? 'has-error' : ''}`}
+                disabled={submitting}
+                required
+              />
+            </div>
+            {errors.phone ? (
+              <div className="login-field-error">{errors.phone}</div>
+            ) : (
+              <div className="register-field-hint">
+                We will text a 6-digit verification code to this number.
+              </div>
+            )}
+          </div>
+
+          {/* Password */}
+          <div className="login-field">
+            <label htmlFor="register-password" className="login-field-label">
+              Password
+            </label>
+            <div className="login-field-input-wrap">
+              <span className="login-field-icon">
+                <Lock size={18} />
+              </span>
+              <input
+                id="register-password"
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                autoComplete="new-password"
+                placeholder="At least 10 characters"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value)
+                  if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }))
+                }}
+                className={`login-field-input ${errors.password ? 'has-error' : ''}`}
+                disabled={submitting}
+                required
+              />
+              <button
+                type="button"
+                className="login-pw-toggle"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-pressed={showPassword}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+            {errors.password && <div className="login-field-error">{errors.password}</div>}
+          </div>
+
+          {/* Confirm Password */}
+          <div className="login-field">
+            <label htmlFor="register-confirm-password" className="login-field-label">
+              Confirm Password
+            </label>
+            <div className="login-field-input-wrap">
+              <span className="login-field-icon">
+                <Lock size={18} />
+              </span>
+              <input
+                id="register-confirm-password"
+                type={showConfirmPassword ? 'text' : 'password'}
+                name="confirmPassword"
+                autoComplete="new-password"
+                placeholder="Re-enter your password"
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value)
+                  if (errors.confirmPassword) setErrors((prev) => ({ ...prev, confirmPassword: undefined }))
+                }}
+                className={`login-field-input ${errors.confirmPassword ? 'has-error' : ''}`}
+                disabled={submitting}
+                required
+              />
+              <button
+                type="button"
+                className="login-pw-toggle"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                aria-pressed={showConfirmPassword}
+              >
+                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+            {errors.confirmPassword && <div className="login-field-error">{errors.confirmPassword}</div>}
+          </div>
         </div>
 
         {/* Terms and Conditions Checkbox */}
-        <div style={{ marginBottom: '1.5rem' }}>
+        <div style={{ marginBottom: 'clamp(0.75rem, 1.4vh, 1.25rem)' }}>
           <label className="register-terms-label" style={{ marginBottom: 0 }}>
             <input
               type="checkbox"

@@ -41,7 +41,15 @@ function useHeroPanelShown(): boolean {
  * light/dark preference. Pages keep all of their own form state, validation and API calls — this component only provides
  * the shared presentation.
  */
-export function AuthLayout({ ariaLabel, children }: { ariaLabel: string; children: React.ReactNode }) {
+export function AuthLayout({
+  ariaLabel,
+  children,
+  formWrapperClassName,
+}: {
+  ariaLabel: string
+  children: React.ReactNode
+  formWrapperClassName?: string
+}) {
   const { branding, status } = useLoginBranding()
   const panelShown = useHeroPanelShown()
   const customVersion = branding?.heroImage?.version
@@ -108,7 +116,7 @@ export function AuthLayout({ ariaLabel, children }: { ariaLabel: string; childre
 
       {/* ─── RIGHT: the page's form ─────────────────────────────────────────── */}
       <section className="login-right" aria-label={ariaLabel}>
-        <div className="login-form-wrapper">
+        <div className={`login-form-wrapper${formWrapperClassName ? ` ${formWrapperClassName}` : ''}`}>
           <div className="login-mobile-brand">
             <div className="login-mobile-brand-icon">
               <img src="/hexalytelogo.jpeg" alt="Hexalyte Innovation Logo" width={38} height={38} className="login-mobile-brand-img" />
