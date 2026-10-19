@@ -50,7 +50,7 @@
   transition: background 0.8s ease-in-out;
 }
 
-/* ─── Left: Sri Lankan Visual Section ────────────────────────────────────── */
+/* ─── Left: Hero Visual Section ────────────────────────────────────────── */
 
 .login-left {
   position: relative;
@@ -61,7 +61,13 @@
   /* An Admin login theme sets --theme-hero-*; without one these fall back to the built-in look. */
   color: var(--theme-hero-text, #ffffff);
   background-color: var(--theme-hero-bg, transparent);
-  background-image: url('/ninearch.avif');
+}
+
+/* Neutral fallback background layer */
+.login-left-fallback {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

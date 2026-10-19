@@ -4,9 +4,9 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 /**
- * Regression tests for Login and Register Layout Stability and Image Loading:
- * - Local Sri Lankan hero background image asset (/ninearch.avif) is available, lightweight, and tracked.
- * - .login-left defines an immediate stable base background image and color to prevent blank spaces.
+ * Regression tests for Login and Register Layout Stability and Dynamic Hero Image:
+ * - Dynamic Admin-configured image source only; no hardcoded hero image asset (/ninearch.avif) in public directory or CSS.
+ * - .login-left and .login-left-fallback define an immediate stable base background color and neutral gradient to prevent blank spaces.
  * - .login-split prevents horizontal overflow and confines viewport overflow on desktop.
  * - .login-right has fluid padding and scoped vertical scrolling (overflow-y: auto) to eliminate double/unwanted scrollbars.
  * - .register-grid organizes fields into a responsive 2-column layout on desktop to fit without unnecessary scrolling.
@@ -19,21 +19,37 @@ const PUBLIC_DIR = path.resolve(__dirname, '../../web/public')
 
 const read = (file: string) => fs.readFileSync(path.join(WEB_SRC, file), 'utf8').replace(/\r\n/g, '\n')
 
-describe('Image Asset and Stability', () => {
-  it('local Sri Lankan-themed image asset (ninearch.avif) exists in public directory and is lightweight (< 150 KB)', () => {
+describe('Dynamic Hero Image and Neutral Fallback (No Hardcoded Images)', () => {
+  it('no hardcoded hero image asset (ninearch.avif) exists in public directory or is bundled', () => {
     const avifPath = path.join(PUBLIC_DIR, 'ninearch.avif')
-    assert.ok(fs.existsSync(avifPath), 'public/ninearch.avif must exist')
-    const size = fs.statSync(avifPath).size
-    assert.ok(size > 10_000, `image file size ${size} should be a valid image`)
-    assert.ok(size < 150_000, `image file size ${size} should be lightweight (< 150 KB)`)
+    assert.equal(fs.existsSync(avifPath), false, 'ninearch.avif must not exist in public directory')
   })
 
-  it('login.css declares stable base background image and background color on .login-left', () => {
+  it('neither login.css nor AuthLayout.tsx references ninearch.avif or any hardcoded image files', () => {
     const css = read('app/login/login.css')
-    assert.match(css, /\.login-left\s*\{[^}]*background-image:\s*url\(['"]?\/ninearch\.avif['"]?\)/, '.login-left has ninearch.avif')
+    const authLayout = read('components/auth/AuthLayout.tsx')
+    assert.equal(/ninearch/i.test(css), false, 'login.css must not reference ninearch')
+    assert.equal(/ninearch/i.test(authLayout), false, 'AuthLayout must not reference ninearch')
+
+    // Ensure no hardcoded picture file url in login.css
+    const urls = css.split('url(').slice(1).map((s) => s.split(')')[0])
+    assert.deepEqual(urls.filter((u) => /[.](png|jpe?g|webp|avif|gif|svg)/i.test(u)), [], 'login.css must not point to any static picture file')
+  })
+
+  it('login.css defines .login-left-fallback and clean background styling to prevent blank spaces during load', () => {
+    const css = read('app/login/login.css')
     assert.match(css, /\.login-left\s*\{[^}]*background-color:\s*var\(--theme-hero-bg,\s*transparent\)/, '.login-left has theme background color')
-    assert.match(css, /\.login-left\s*\{[^}]*background-size:\s*cover;/, '.login-left covers full container')
-    assert.match(css, /\.login-left\s*\{[^}]*background-position:\s*center;/, '.login-left centers image')
+    assert.match(css, /\.login-left-fallback\s*\{[^}]*position:\s*absolute;/, '.login-left-fallback is positioned absolutely')
+    assert.match(css, /\.login-left-fallback\s*\{[^}]*inset:\s*0;/, '.login-left-fallback covers entire hero area')
+    assert.match(css, /\.login-left-fallback\s*\{[^}]*background-size:\s*cover;/, '.login-left-fallback has cover size')
+    assert.match(css, /\.login-left-fallback\s*\{[^}]*background-position:\s*center;/, '.login-left-fallback has centered position')
+  })
+
+  it('AuthLayout renders .login-left-fallback layer with neutral fallback gradient and theme background', () => {
+    const authLayout = read('components/auth/AuthLayout.tsx')
+    assert.match(authLayout, /className="login-left-fallback"/, 'AuthLayout renders login-left-fallback element')
+    assert.match(authLayout, /backgroundImage:\s*fallback/, 'fallback layer uses neutral gradient fallback')
+    assert.match(authLayout, /backgroundColor:\s*'var\(--theme-hero-bg,\s*#0f172a\)'/, 'fallback layer uses theme background color')
   })
 })
 

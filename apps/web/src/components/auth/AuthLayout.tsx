@@ -89,6 +89,12 @@ export function AuthLayout({
       {/* ─── LEFT: landscape + Hexalyte branding ────────────────────────────── */}
       <section className="login-left" aria-label="Hexalyte Innovation Overview">
         <div
+          className="login-left-fallback"
+          style={{ backgroundImage: fallback, backgroundColor: 'var(--theme-hero-bg, #0f172a)' }}
+          aria-hidden="true"
+        />
+
+        <div
           className={`login-left-bg ${loaded ? 'loaded' : 'loading'}`}
           style={{ backgroundImage: background, backgroundColor: 'var(--theme-hero-bg, #0f172a)' }}
           role="img"
