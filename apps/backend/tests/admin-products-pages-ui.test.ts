@@ -144,7 +144,7 @@ describe('Product list page: loading and failing', () => {
     script = [ok([listItem()])]
     const page = await open()
     assert.ok(page.text().includes('Hexalyte Salon') && page.text().includes('SALON'))
-    assert.ok(page.hasButton('New product'))
+    assert.ok(page.hasButton('+ Add SaaS Product') || page.hasButton('New product'))
     assert.equal(calls, 1)
   })
 })

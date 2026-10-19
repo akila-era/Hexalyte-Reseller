@@ -1,5 +1,5 @@
 import type { Request } from 'express'
-import { Prisma } from '@prisma/client'
+import { Prisma, type IntegrationStatus } from '@prisma/client'
 import { ZodError, ZodIssueCode } from 'zod'
 import { prisma } from '../../config/database'
 import { conflict, notFoundError } from '../../middleware/error.middleware'
@@ -116,18 +116,87 @@ export const productService = {
     if (await prisma.saasProduct.findUnique({ where: { code: input.code }, select: { id: true } })) {
       throw conflict(`Product code ${input.code} already exists`)
     }
+
+    const {
+      integration,
+      integrationEnabled,
+      integrationType,
+      provider: flatProvider,
+      baseUrl: flatBaseUrl,
+      apiKey: flatApiKey,
+      apiSecret: flatApiSecret,
+      signingSecret: flatSigningSecret,
+      ...productData
+    } = input
+
+    // Normalize integration input if passed flat or nested
+    const resolvedIntegration = integration ?? (
+      integrationEnabled !== undefined || integrationType !== undefined || flatBaseUrl !== undefined || flatApiKey !== undefined
+        ? {
+            provider: flatProvider ?? (integrationType === 'API' ? 'MOBILE_SHOP' : 'MANUAL'),
+            enabled: integrationEnabled ?? true,
+            baseUrl: flatBaseUrl ?? null,
+            apiKey: flatApiKey || undefined,
+            signingSecret: flatSigningSecret || flatApiSecret || undefined,
+          }
+        : undefined
+    )
+
+    const providerKey = resolvedIntegration?.provider ?? 'MANUAL'
+    const enabled = resolvedIntegration ? resolvedIntegration.enabled : false
+
+    let integrationStatus: IntegrationStatus = 'CONFIGURED'
+    const configData: {
+      provider: string
+      baseUrl: string | null
+      apiKeyEncrypted: string | null
+      signingSecretEncrypted: string | null
+      updatedById: string
+    } = {
+      provider: providerKey,
+      baseUrl: resolvedIntegration?.baseUrl ?? null,
+      apiKeyEncrypted: resolvedIntegration?.apiKey ? encryptSecret(resolvedIntegration.apiKey) : null,
+      signingSecretEncrypted: resolvedIntegration?.signingSecret ? encryptSecret(resolvedIntegration.signingSecret) : null,
+      updatedById: req.user!.userId,
+    }
+
+    if (!resolvedIntegration || providerKey === 'MANUAL') {
+      integrationStatus = resolvedIntegration && enabled === false ? 'DISABLED' : 'CONFIGURED'
+    } else if (!enabled) {
+      integrationStatus = 'DISABLED'
+    } else {
+      const isComplete = Boolean(configData.baseUrl && configData.apiKeyEncrypted && configData.signingSecretEncrypted)
+      integrationStatus = isComplete ? 'CONFIGURED' : 'NOT_CONFIGURED'
+    }
+
     const product = await prisma.$transaction(async (tx) => {
       const created = await tx.saasProduct.create({
         data: {
-          ...input,
-          integrationStatus: 'CONFIGURED',
-          integration: { create: { provider: 'MANUAL', updatedById: req.user!.userId } },
+          ...productData,
+          integrationStatus,
+          integration: { create: configData },
         },
         select: { id: true, code: true },
       })
       await auditService.fromRequest(
         req,
-        { action: 'SAAS_PRODUCT_CREATED', entityType: 'SaasProduct', entityId: created.id, metadata: { ...input } },
+        {
+          action: 'SAAS_PRODUCT_CREATED',
+          entityType: 'SaasProduct',
+          entityId: created.id,
+          metadata: {
+            code: productData.code,
+            name: productData.name,
+            status: productData.status,
+            monthlyPrice: String(productData.monthlyPrice),
+            currency: productData.currency,
+            trialAvailable: productData.trialAvailable,
+            trialDays: productData.trialDays,
+            integrationProvider: providerKey,
+            integrationEnabled: enabled,
+            integrationStatus,
+          },
+        },
         tx,
       )
       return created

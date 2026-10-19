@@ -17,6 +17,42 @@ const productFields = {
  * Only the request itself is visible here. A partial update such as `{ trialDays: 30 }` depends on whether the stored
  * product has a trial, so `productService.update` enforces the same rule against the stored product.
  */
+const secret = (label: string, min: number) =>
+  z
+    .string()
+    .trim()
+    .min(min, `${label} must be at least ${min} characters`)
+    .max(500)
+    .regex(/^\S+$/, `${label} must not contain spaces`)
+
+export const createIntegrationSchema = z
+  .object({
+    provider: z.enum(integrationRegistry.keys).default('MANUAL'),
+    enabled: z.boolean().default(true),
+    baseUrl: z
+      .string()
+      .trim()
+      .url()
+      .max(300)
+      .refine((u) => env.NODE_ENV !== 'production' || u.startsWith('https://'), 'Base URL must use https')
+      .nullable()
+      .optional(),
+    apiKey: secret('API key', 16).optional(),
+    signingSecret: secret('Signing secret', 32).optional(),
+  })
+  .strict()
+  .refine(
+    (v) => {
+      if (!v.enabled) return true
+      const provider = integrationRegistry.get(v.provider)
+      if (provider?.requiresCredentials) {
+        return Boolean(v.baseUrl && v.apiKey && v.signingSecret)
+      }
+      return true
+    },
+    { message: 'Base URL, API key, and signing secret are required when remote API integration is enabled', path: ['baseUrl'] },
+  )
+
 const trialRule = (v: { trialAvailable?: boolean; trialDays?: number | null }) => !(v.trialAvailable === false && v.trialDays)
 export const trialRuleMessage = { message: 'Trial days can only be set when a trial is available', path: ['trialDays'] }
 
@@ -31,9 +67,33 @@ export const createProductSchema = z
     status: productFields.status.default('INACTIVE'),
     currency: productFields.currency.default('LKR'),
     trialAvailable: productFields.trialAvailable.default(false),
+    integration: createIntegrationSchema.optional(),
+    integrationEnabled: z.boolean().optional(),
+    integrationType: z.enum(['API', 'MANUAL']).optional(),
+    baseUrl: z
+      .string()
+      .trim()
+      .url()
+      .max(300)
+      .refine((u) => env.NODE_ENV !== 'production' || u.startsWith('https://'), 'Base URL must use https')
+      .nullable()
+      .optional(),
+    apiKey: z.string().trim().optional().nullable(),
+    apiSecret: z.string().trim().optional().nullable(),
+    signingSecret: z.string().trim().optional().nullable(),
+    provider: z.enum(integrationRegistry.keys).optional(),
   })
   .strict()
   .refine(trialRule, trialRuleMessage)
+  .refine(
+    (data) => {
+      if (data.integrationEnabled && data.integrationType === 'API') {
+        return Boolean(data.baseUrl && (data.apiKey || data.signingSecret || data.apiSecret))
+      }
+      return true
+    },
+    { message: 'Base URL and credentials are required when API integration is enabled', path: ['baseUrl'] },
+  )
 
 /**
  * The product's `updatedAt` as the client last saw it (an ISO timestamp, as the API returns it). Not a product field:
@@ -96,13 +156,6 @@ export const launchProductSchema = z
   })
   .strict()
 
-const secret = (label: string, min: number) =>
-  z
-    .string()
-    .trim()
-    .min(min, `${label} must be at least ${min} characters`)
-    .max(500)
-    .regex(/^\S+$/, `${label} must not contain spaces`)
 
 /**
  * Only connection settings for the partner API are accepted (strict): no

@@ -32,6 +32,12 @@ export interface ProductListItem extends AdminProduct {
   integration: { provider: string; lastCheckedAt: string | null; lastCheckOk: boolean | null } | null
 }
 
+export interface IntegrationReadiness {
+  state: 'MANUAL_FULFILMENT' | 'AWAITING_CREDENTIALS' | 'AWAITING_VERIFICATION' | 'CONNECTED' | 'CONNECTION_ERROR' | 'DISABLED'
+  label: string
+  description: string
+}
+
 /** What the API returns about a connection: secrets only as present/absent. */
 export interface SafeIntegrationConfig {
   provider: string
@@ -43,6 +49,7 @@ export interface SafeIntegrationConfig {
   lastCheckedAt: string | null
   lastCheckOk: boolean | null
   lastError: string | null
+  readiness?: IntegrationReadiness
   updatedAt: string
 }
 
@@ -111,7 +118,7 @@ export const INTEGRATION_STATUS_LABELS: Record<IntegrationStatus, string> = {
   NOT_CONFIGURED: 'Not configured',
   CONFIGURED: 'Configured',
   CONNECTED: 'Connected',
-  ERROR: 'Error',
+  ERROR: 'Failed',
   DISABLED: 'Disabled',
 }
 

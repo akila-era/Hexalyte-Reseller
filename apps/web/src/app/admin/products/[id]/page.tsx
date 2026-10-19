@@ -439,7 +439,7 @@ export default function ProductDetailPage() {
       <div className="card">
         <div className="row" style={{ marginBottom: '0.75rem' }}>
           <h2 style={{ margin: 0 }}>Integration</h2>
-          <span className={`badge ${product.integrationStatus}`}>{INTEGRATION_STATUS_LABELS[product.integrationStatus]}</span>
+          <span className={`badge ${product.integrationStatus}`}>{integration?.readiness?.label ?? INTEGRATION_STATUS_LABELS[product.integrationStatus]}</span>
           <span className="spacer" />
           {canConfigure && (
             <>
@@ -452,6 +452,11 @@ export default function ProductDetailPage() {
             </>
           )}
         </div>
+        {integration?.readiness?.description && (
+          <p className="small muted" style={{ marginTop: '-0.25rem', marginBottom: '0.75rem' }}>
+            {integration.readiness.description}
+          </p>
+        )}
         {canConfigure && providersError && (
           <div className="alert error">
             {providersError}{' '}
@@ -603,6 +608,11 @@ export default function ProductDetailPage() {
               <input type="checkbox" checked={config.enabled} onChange={(e) => setConfig((c) => ({ ...c, enabled: e.target.checked }))} />
               Integration enabled
             </label>
+            {!config.enabled && product.integrationStatus !== 'DISABLED' && (
+              <div className="alert warning small" style={{ marginBottom: '0.75rem' }}>
+                <strong>Note:</strong> Disabling this integration pauses automatic provisioning. Stored credentials remain safely encrypted and preserved.
+              </div>
+            )}
             <div className="alert info small">
               Only partner API connection settings are accepted. Never enter database or internal service credentials.
             </div>

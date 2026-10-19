@@ -33,10 +33,13 @@ export const resellerAccessService = {
   async set(resellerId: string, productId: string, input: SetAccessInput, req: Request) {
     const [reseller, product] = await Promise.all([
       prisma.reseller.findUnique({ where: { id: resellerId }, select: { id: true } }),
-      prisma.saasProduct.findUnique({ where: { id: productId }, select: { name: true } }),
+      prisma.saasProduct.findUnique({ where: { id: productId }, select: { name: true, status: true } }),
     ])
     if (!reseller) throw notFoundError('Partner')
     if (!product) throw notFoundError('SaaS product')
+    if (input.status === 'ACTIVE' && 'status' in product && (product as any).status && (product as any).status !== 'ACTIVE') {
+      throw badRequest('Cannot grant access to an inactive product')
+    }
 
     const now = new Date()
     // An omitted note keeps the stored one (the admin UI leaves it out when the field is blank);
